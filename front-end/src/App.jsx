@@ -7,6 +7,12 @@ import About from './components/About.jsx';
 import Service from './components/Service.jsx';
 import Login from './components/Login.jsx';
 import Signup from './components/Signup.jsx';
+import CreateProblem from './components/CreateProblem.jsx';
+import Problem from './components/Problem.jsx';
+import UpdateProblem from './components/UpdateProblem.jsx'; 
+import DeleteProblem from './components/DeleteProblem.jsx';
+import Profile from './components/Profile.jsx';
+
 
 function App() {
   let router = createBrowserRouter([
@@ -55,6 +61,52 @@ function App() {
       <Footer/>
       </>
     },
+    {
+      path : "/create",
+      element :
+      <>
+      <Navbar/>
+      <CreateProblem/>
+      <Footer/>
+      </>
+    },
+    {
+      path : "/problem/:id",
+      element :
+      <>
+      <Navbar/>
+      <Problem/>
+      <Footer/>
+      </>
+    },
+    {
+      path :"/update",
+      element :
+      <>
+      <Navbar/>
+      <UpdateProblem/>
+      <Footer/>
+      </>
+    },
+    {
+      path :"/delete",
+      element :
+      <>
+      <Navbar/>
+      <DeleteProblem/>
+      <Footer/>
+      </>
+    },
+    {
+      path : "/profile",
+      element :
+      <>
+      <Navbar/>
+      <Profile/>
+      <Footer/>
+      </>
+    }
+    
   ]);
 
   return (

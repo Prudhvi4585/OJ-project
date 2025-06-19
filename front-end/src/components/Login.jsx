@@ -39,7 +39,7 @@ function Login() {
             setCorrectCredentials(false);
         }
         else{
-            console.error('Login failed:', error);
+            // console.error('Login failed:', error);
             alert('Something went wrong. Please try again.');
         }
     }
