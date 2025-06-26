@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors');
 const userRouter = require('./routes/userRoutes');
 const connectDB = require('./config/db');
+const problemRouter = require('./routes/problemRoutes');
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -13,7 +14,7 @@ app.use(cors());
 
 app.use('/api/v1/users',userRouter);
 
-// app.use('/api/v1/problems',problemRouter);
+app.use('/api/v1/problems',problemRouter);    
 
 // app.use('/api/v1/contests',contestRouter);
 
