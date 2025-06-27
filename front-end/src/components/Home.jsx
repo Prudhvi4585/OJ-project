@@ -27,7 +27,7 @@ const Home = () => {
         >
           <div className="flex items-center justify-between">
             <Link
-              to={`/${problem.title}`}
+              to={`/problem/${problem.title}`}
               className="text-xl font-semibold text-blue-400 hover:underline"
             >
               {problem.title}

@@ -71,7 +71,7 @@ function App() {
       </>
     },
     {
-      path : "/problem/:id",
+      path : "/problem/:title",
       element :
       <>
       <Navbar/>
