@@ -1,14 +1,32 @@
 
 const Problem = require('../models/Problem');
+const dotenv = require('dotenv');
+dotenv.config();
 
 
 exports.getProblemByTitle = async (req, res) => {
+  try {
     const problem = await Problem.findOne({ title: req.params.title });
     if (!problem) {
       return res.status(404).json({ message: 'Problem not found!' });
     }
-    res.status(200).json(problem);
-  };
+
+    // Clone the object and limit testcases to first 2
+    const safeProblem = {
+      _id: problem._id,
+      title: problem.title,
+      statement: problem.statement,
+      constraints: problem.constraints,
+      difficulty: problem.difficulty,
+      testcases: problem.testcases.slice(0, 2), // only include first 2 testcases
+    };
+
+    res.status(200).json(safeProblem);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
   
 exports.getAllProblems = async (req, res) => {
   const problems = await Problem.find({}, 'title difficulty'); // only select title and difficulty
@@ -95,6 +113,29 @@ exports.deleteProblem = async (req, res) => {
   } catch (error) {
     console.error('Error while deleting problem:', error.message);
     return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
+
+
+
+
+
+exports.getFullProblemByTitle = async (req, res) => {
+  const secret = req.headers['x-compiler-secret'];
+  if (secret !== process.env.COMPILER_SECRET) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  
+  const { title } = req.params;
+  console.log(title)
+  try {
+    const problem = await Problem.findOne({ title });
+    if (!problem) return res.status(404).json({ message: 'Problem not found' });
+    res.status(200).json(problem);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 

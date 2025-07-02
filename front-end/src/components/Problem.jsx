@@ -83,6 +83,23 @@ const Problem = () => {
               <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">📌 Constraints</h2>
               <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{problem.constraints}</p>
             </div>
+
+            {/* Test Cases (only first two) */}
+            {problem.testcases?.length > 0 && (
+              <div className="mt-6">
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">🧪 Sample Testcases</h2>
+                {problem.testcases.slice(0, 2).map((testcase, idx) => (
+                  <div
+                    key={idx}
+                    className="mb-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                  >
+                    <p className="font-semibold">Testcase {idx + 1}</p>
+                    <p><span className="font-medium">Input:</span> {testcase.input}</p>
+                    <p><span className="font-medium">Expected Output:</span> {testcase.output}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <p className="text-white">Loading problem...</p>
@@ -144,10 +161,26 @@ const Problem = () => {
           </div>
           <p className="mt-2 text-green-500 dark:text-green-400 font-medium">{verdict}</p>
         </div>
+
+        {/* Output for Sample Testcases */}
+        {problem?.testcases?.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-white mb-2">🧾 Output for Sample Testcases:</h3>
+            {problem.testcases.slice(0, 2).map((testcase, idx) => (
+              <div
+                key={idx}
+                className="mb-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              >
+                <p className="font-semibold">Testcase {idx + 1}</p>
+                <p><span className="font-medium">Input:</span> {testcase.input}</p>
+                <p><span className="font-medium">Your Output:</span> {output || '---'}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default Problem;
-    
