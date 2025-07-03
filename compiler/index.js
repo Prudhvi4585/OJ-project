@@ -61,7 +61,7 @@ app.post('/submit', async (req, res) => {
         results.push({
         //   input: testcase.input,
         //   expectedOutput: testcase.output,
-          receivedOutput: err.toString(),
+          // receivedOutput: err.toString(),
           verdict: 'Error'
         });
       }
@@ -81,6 +81,39 @@ app.post('/submit', async (req, res) => {
     res.status(500).json({ message: 'Error fetching problem or executing code' });
   }
 });
+
+
+// 🎯 POST /run
+app.post('/run', async (req, res) => {
+  const { code, language = 'cpp', input = '' } = req.body;
+
+  if (!code) {
+    return res.status(400).json({ message: 'Code is required' });
+  }
+
+  try {
+    // 1️⃣ Generate file
+    const filePath = generateFile(language, code);
+
+    // 2️⃣ Execute with custom input
+    try {
+      const output = await executeCpp(filePath, input);
+      res.status(200).json({ output: output.trim() });
+    } catch (err) {
+      res.status(200).json({ output: `Error: ${err.toString()}` });
+    }
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: 'Server error during execution' });
+  }
+});
+
+
+
+
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`⚙️ Compiler service running at http://localhost:${PORT}`));

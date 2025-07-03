@@ -9,8 +9,12 @@ const Problem = () => {
   const [language, setLanguage] = useState('cpp');
   const [output, setOutput] = useState('');
   const [verdict, setVerdict] = useState('');
+  const [customInput, setCustomInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [testResults, setTestResults] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [dividerPosition, setDividerPosition] = useState(50); // percentage
+  const [dividerPosition, setDividerPosition] = useState(50);
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -34,14 +38,68 @@ const Problem = () => {
   const handleMouseDown = () => setIsDragging(true);
   const handleMouseUp = () => setIsDragging(false);
 
-  const runCode = () => {
-    setOutput('Sample output here...');
-    setVerdict('✔️ Passed');
+  const runCode = async () => {
+    setIsLoading(true);
+    setError('');
+    setVerdict('');
+    setOutput('');
+    setTestResults([]);
+    try {
+      const res = await axios.post('http://localhost:5000/run', {
+        code,
+        language,
+        input: customInput
+      });
+      setOutput(res.data.output);
+      setVerdict('✔️ Custom input executed');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Something went wrong while running your code');
+    }
+    setIsLoading(false);
   };
 
-  const submitCode = () => {
-    setOutput('Final output...');
-    setVerdict('✅ All Testcases Passed');
+  const submitCode = async () => {
+    setIsLoading(true);
+    setError('');
+    setOutput('');
+    setVerdict('');
+    setTestResults([]);
+    try {
+      const res = await axios.post('http://localhost:5000/submit', {
+        code,
+        language,
+        problemTitle: problem.title
+      });
+
+      const { summary, results } = res.data;
+      setVerdict(`✅ ${summary.passed}/${summary.total} Testcases Passed`);
+      setTestResults(results);
+
+      const firstErrorIndex = results.findIndex(r => r.verdict === 'Error');
+      const firstFailIndex = results.findIndex(r => r.verdict === 'Failed');
+
+      if (firstErrorIndex === -1 && firstFailIndex === -1) {
+        // ✅ All passed
+        setError('');
+      } else if (firstErrorIndex === -1) {
+        // ❌ Only wrong answer exists
+        setError(`❌ Wrong Answer on Testcase ${firstFailIndex + 1}`);
+      } else if (firstFailIndex === -1) {
+        // ❌ Only runtime error exists
+        setError(`❌ Runtime Error on Testcase ${firstErrorIndex + 1}`);
+      } else {
+        // ❌ Both exist — show the earlier one
+        if (firstFailIndex < firstErrorIndex) {
+          setError(`❌ Wrong Answer on Testcase ${firstFailIndex + 1}`);
+        } else {
+          setError(`❌ Runtime Error on Testcase ${firstErrorIndex + 1}`);
+        }
+      }
+
+    } catch (err) {
+      setError(err.response?.data?.message || 'Something went wrong while submitting your code');
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -50,7 +108,7 @@ const Problem = () => {
       onMouseMove={handleDrag}
       onMouseUp={handleMouseUp}
     >
-      {/* Left - Problem Statement */}
+      {/* Left Panel */}
       <div
         className="p-8 overflow-auto bg-white dark:bg-gray-800 shadow-lg"
         style={{ width: `${dividerPosition}%`, minWidth: '250px' }}
@@ -84,7 +142,7 @@ const Problem = () => {
               <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{problem.constraints}</p>
             </div>
 
-            {/* Test Cases (only first two) */}
+            {/* Sample Test Cases */}
             {problem.testcases?.length > 0 && (
               <div className="mt-6">
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">🧪 Sample Testcases</h2>
@@ -112,9 +170,9 @@ const Problem = () => {
         className="w-2 cursor-col-resize bg-gray-300 dark:bg-gray-700"
       />
 
-      {/* Right - Code Editor */}
+      {/* Right Panel */}
       <div className="p-6 flex-1 dark:bg-gray-900">
-        {/* Language Dropdown */}
+        {/* Language Selection */}
         <div className="mb-4">
           <select
             value={language}
@@ -128,7 +186,7 @@ const Problem = () => {
           </select>
         </div>
 
-        {/* Code Textarea */}
+        {/* Code Editor */}
         <textarea
           value={code}
           onChange={(e) => setCode(e.target.value)}
@@ -153,31 +211,65 @@ const Problem = () => {
           </button>
         </div>
 
-        {/* Output */}
+        {/* Custom Input */}
         <div className="mt-6">
-          <h3 className="text-lg font-semibold text-white mb-2">Output:</h3>
-          <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded text-gray-800 dark:text-gray-100 whitespace-pre-line">
-            {output}
-          </div>
-          <p className="mt-2 text-green-500 dark:text-green-400 font-medium">{verdict}</p>
+          <h3 className="text-lg font-semibold text-white mb-2">🧾 Custom Input:</h3>
+          <textarea
+            value={customInput}
+            onChange={(e) => setCustomInput(e.target.value)}
+            rows={4}
+            placeholder="Enter your custom input here..."
+            className="w-full p-3 rounded-lg border bg-gray-50 border-gray-300 dark:bg-gray-800 dark:text-white font-mono"
+          />
         </div>
 
-        {/* Output for Sample Testcases */}
-        {problem?.testcases?.length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold text-white mb-2">🧾 Output for Sample Testcases:</h3>
-            {problem.testcases.slice(0, 2).map((testcase, idx) => (
-              <div
-                key={idx}
-                className="mb-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
-              >
-                <p className="font-semibold">Testcase {idx + 1}</p>
-                <p><span className="font-medium">Input:</span> {testcase.input}</p>
-                <p><span className="font-medium">Your Output:</span> {output || '---'}</p>
-              </div>
-            ))}
-          </div>
+        {/* Loading Indicator */}
+        {isLoading && (
+          <p className="mt-4 text-blue-500 dark:text-blue-300 font-semibold">⏳ Running your code...</p>
         )}
+
+        {/* Verdict + Error + Results */}
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold text-white mb-2">Output:</h3>
+
+          {/* Verdict */}
+          {verdict && (
+            <p className="text-green-500 dark:text-green-400 font-medium">{verdict}</p>
+          )}
+
+          {/* Output */}
+          {output && (
+            <div className="mt-2 p-4 rounded bg-gray-800 text-white font-mono whitespace-pre-wrap">
+              {output}
+            </div>
+          )}
+
+
+          {/* Error */}
+          {error && (
+            <p className="mt-2 text-red-500 dark:text-red-400 font-medium">{error}</p>
+          )}
+
+          {/* Per Testcase Verdict */}
+          {testResults.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {testResults.map((result, idx) => (
+                <div
+                  key={idx}
+                  className={`px-4 py-2 rounded text-white font-mono ${
+                    result.verdict === 'Passed'
+                      ? 'bg-green-600'
+                      : result.verdict === 'Failed'
+                      ? 'bg-red-600'
+                      : 'bg-yellow-600'
+                  }`}
+                >
+                  Testcase {idx + 1}: {result.verdict}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
