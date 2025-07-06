@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 
 const Problem = () => {
   const { title } = useParams();
@@ -15,6 +16,9 @@ const Problem = () => {
   const [testResults, setTestResults] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [dividerPosition, setDividerPosition] = useState(50);
+
+  const [isHintLoading, setIsHintLoading] = useState(false);
+  const [hintContent, setHintContent] = useState('');
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -79,27 +83,37 @@ const Problem = () => {
       const firstFailIndex = results.findIndex(r => r.verdict === 'Failed');
 
       if (firstErrorIndex === -1 && firstFailIndex === -1) {
-        // ✅ All passed
         setError('');
       } else if (firstErrorIndex === -1) {
-        // ❌ Only wrong answer exists
         setError(`❌ Wrong Answer on Testcase ${firstFailIndex + 1}`);
       } else if (firstFailIndex === -1) {
-        // ❌ Only runtime error exists
         setError(`❌ Runtime Error on Testcase ${firstErrorIndex + 1}`);
       } else {
-        // ❌ Both exist — show the earlier one
         if (firstFailIndex < firstErrorIndex) {
           setError(`❌ Wrong Answer on Testcase ${firstFailIndex + 1}`);
         } else {
           setError(`❌ Runtime Error on Testcase ${firstErrorIndex + 1}`);
         }
       }
-
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong while submitting your code');
     }
     setIsLoading(false);
+  };
+
+  const generateHints = async () => {
+    setIsHintLoading(true);
+    setHintContent('');
+    try {
+      const res = await axios.post('http://localhost:5000/ai-hints', {
+        problem,
+        code
+      });
+      setHintContent(res.data.airesponce || 'No hints returned.');
+    } catch (err) {
+      setHintContent('❌ Failed to generate hints. Try again.');
+    }
+    setIsHintLoading(false);
   };
 
   return (
@@ -158,6 +172,29 @@ const Problem = () => {
                 ))}
               </div>
             )}
+
+            {/* Hints Generator Button */}
+            <div className="mt-6">
+              <button
+                onClick={generateHints}
+                disabled={isHintLoading}
+                className={`px-4 py-2 rounded-lg text-white ${
+                  isHintLoading ? 'bg-gray-500' : 'bg-purple-600 hover:bg-purple-700'
+                }`}
+              >
+                {isHintLoading ? 'Generating Hints...' : '💡 Generate Hints'}
+              </button>
+            </div>
+
+            {/* Hints Section */}
+            {hintContent && (
+              <div className="mt-6 p-4 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white shadow">
+                <h2 className="text-xl font-semibold mb-3 text-gray-800 dark:text-gray-200">🧠 Hints</h2>
+                <div className="prose dark:prose-invert max-w-none">
+                  <ReactMarkdown>{hintContent}</ReactMarkdown>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <p className="text-white">Loading problem...</p>
@@ -172,7 +209,6 @@ const Problem = () => {
 
       {/* Right Panel */}
       <div className="p-6 flex-1 dark:bg-gray-900">
-        {/* Language Selection */}
         <div className="mb-4">
           <select
             value={language}
@@ -186,7 +222,6 @@ const Problem = () => {
           </select>
         </div>
 
-        {/* Code Editor */}
         <textarea
           value={code}
           onChange={(e) => setCode(e.target.value)}
@@ -195,7 +230,6 @@ const Problem = () => {
           className="w-full p-4 rounded-lg border bg-gray-50 border-gray-300 dark:bg-gray-900 dark:text-white font-mono"
         />
 
-        {/* Buttons */}
         <div className="mt-4 flex gap-4">
           <button
             onClick={runCode}
@@ -211,7 +245,6 @@ const Problem = () => {
           </button>
         </div>
 
-        {/* Custom Input */}
         <div className="mt-6">
           <h3 className="text-lg font-semibold text-white mb-2">🧾 Custom Input:</h3>
           <textarea
@@ -223,34 +256,27 @@ const Problem = () => {
           />
         </div>
 
-        {/* Loading Indicator */}
         {isLoading && (
           <p className="mt-4 text-blue-500 dark:text-blue-300 font-semibold">⏳ Running your code...</p>
         )}
 
-        {/* Verdict + Error + Results */}
         <div className="mt-6">
           <h3 className="text-lg font-semibold text-white mb-2">Output:</h3>
 
-          {/* Verdict */}
           {verdict && (
             <p className="text-green-500 dark:text-green-400 font-medium">{verdict}</p>
           )}
 
-          {/* Output */}
           {output && (
             <div className="mt-2 p-4 rounded bg-gray-800 text-white font-mono whitespace-pre-wrap">
               {output}
             </div>
           )}
 
-
-          {/* Error */}
           {error && (
             <p className="mt-2 text-red-500 dark:text-red-400 font-medium">{error}</p>
           )}
 
-          {/* Per Testcase Verdict */}
           {testResults.length > 0 && (
             <div className="mt-4 space-y-2">
               {testResults.map((result, idx) => (

@@ -5,6 +5,8 @@ const executeCpp = require('./executeCpp');
 const app = express();
 const cors = require('cors');
 const dotenv = require('dotenv');
+const generateAIHints = require('./generateAIHints');
+
 
 dotenv.config();
 
@@ -100,13 +102,36 @@ app.post('/run', async (req, res) => {
       const output = await executeCpp(filePath, input);
       res.status(200).json({ output: output.trim() });
     } catch (err) {
-      res.status(200).json({ output: `Error: ${err.toString()}` });
+      res.status(200).json({ output: `Error`});
     }
 
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ message: 'Server error during execution' });
   }
+});
+
+
+
+
+app.post('/ai-hints' , async (req, res) => {
+  const { code, problem } = req.body;
+  if (!problem) {
+    return res.status(400).json({ message: 'Code and Problem are required' });
+  }
+  try {
+    const airesponce = await generateAIHints(code, problem);
+    res.status(200).json({
+      success: true,
+      airesponce
+    }
+    );
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({
+      success: false,
+      error : err.message });
+  }  
 });
 
 
