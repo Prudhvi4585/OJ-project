@@ -36,7 +36,7 @@ const UpdateProblem = () => {
     setSuccessMessage('');
 
     try {
-      const res = await axios.get(`http://localhost:3000/api/v1/problems/getProblemByTitle/${title}`);
+      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/problems/getProblemByTitle/${title}`);
       const data = res.data;
       reset({ ...data, searchTitle: title }); // Reset form with data
     } catch (error) {
@@ -61,7 +61,7 @@ const UpdateProblem = () => {
 
     try {
       // Re-verify existence
-      const check = await axios.get(`http://localhost:3000/api/v1/problems/getProblemByTitle/${oldTitle}`);
+      const check = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/problems/getProblemByTitle/${oldTitle}`);
       if (!check.data) {
         setErrorMessage('❌ The original problem title no longer exists.');
         return;
@@ -76,7 +76,7 @@ const UpdateProblem = () => {
         testcases: data.testcases,
       };
 
-      await axios.put(`http://localhost:3000/api/v1/problems/updateProblem`, payload);
+      await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/v1/problems/updateProblem`, payload);
       setSuccessMessage('✅ Problem updated successfully!');
     } catch (err) {
       console.error('Update failed', err);

@@ -14,6 +14,8 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// http://host.docker.internal:3000/api/v1/problems/getFullProblem/${problemTitle}
+// http://localhost:3000/api/v1/problems/getFullProblem/${problemTitle}
 // 🎯 POST /submit
 app.post('/submit', async (req, res) => {
   const { code, language = 'cpp', problemTitle } = req.body;
@@ -24,7 +26,7 @@ app.post('/submit', async (req, res) => {
 
   try {
     // 1️⃣ Fetch problem from backend
-    const response = await axios.get(`http://localhost:3000/api/v1/problems/getFullProblem/${problemTitle}`, {
+    const response = await axios.get(`${process.env.BACKEND_URL}/api/v1/problems/getFullProblem/${problemTitle}`, {
   headers: {
     'x-compiler-secret': process.env.COMPILER_SECRET
   }

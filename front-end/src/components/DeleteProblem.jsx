@@ -23,7 +23,7 @@ const DeleteProblem = () => {
     setProblemexists(true);
     try{
       // const res = await axios.delete('http://localhost:3000/api/v1/problems/deleteProblem', data);
-      const res = await axios.delete('http://localhost:3000/api/v1/problems/deleteProblem', {
+      const res = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/v1/problems/deleteProblem`, {
         data: { title: data.title },
       });
       console.log(res);

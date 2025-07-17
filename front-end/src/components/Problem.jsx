@@ -23,7 +23,7 @@ const Problem = () => {
   useEffect(() => {
     const fetchProblem = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/api/v1/problems/getProblemByTitle/${title}`);
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/problems/getProblemByTitle/${title}`);
         setProblem(res.data);
       } catch (error) {
         console.error('Failed to fetch problem', error);
@@ -49,7 +49,7 @@ const Problem = () => {
     setOutput('');
     setTestResults([]);
     try {
-      const res = await axios.post('http://localhost:5000/run', {
+      const res = await axios.post(`${import.meta.env.VITE_COMPILER_URL}/run`, {
         code,
         language,
         input: customInput
@@ -69,7 +69,7 @@ const Problem = () => {
     setVerdict('');
     setTestResults([]);
     try {
-      const res = await axios.post('http://localhost:5000/submit', {
+      const res = await axios.post(`${import.meta.env.VITE_COMPILER_URL}/submit`, {
         code,
         language,
         problemTitle: problem.title
@@ -81,7 +81,7 @@ const Problem = () => {
 
       const firstErrorIndex = results.findIndex(r => r.verdict === 'Error');
       const firstFailIndex = results.findIndex(r => r.verdict === 'Failed');
-
+      console.log("submitted code");
       if (firstErrorIndex === -1 && firstFailIndex === -1) {
         setError('');
       } else if (firstErrorIndex === -1) {
@@ -105,7 +105,7 @@ const Problem = () => {
     setIsHintLoading(true);
     setHintContent('');
     try {
-      const res = await axios.post('http://localhost:5000/ai-hints', {
+      const res = await axios.post(`${import.meta.env.VITE_COMPILER_URL}/ai-hints`, {
         problem,
         code
       });

@@ -22,7 +22,7 @@ function Login() {
     setCorrectCredentials(false);
     try{
         console.log(data);
-        let responce = await axios.post('http://localhost:3000/api/v1/users/login', data);
+        let responce = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/users/login`, data);
         console.log(responce)
 
         if(responce.status == 200)

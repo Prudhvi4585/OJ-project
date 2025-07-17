@@ -8,7 +8,7 @@ const Home = () => {
   useEffect(() => {
     const fetchProblems = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/api/v1/problems/getAllProblems');
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/problems/getAllProblems`);
         setProblems(res.data);
       } catch (err) {
         console.error('Error fetching problems:', err);

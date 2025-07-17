@@ -25,7 +25,7 @@ const CreateProblem = () => {
     setNewProblem(true);
     setSuccessMessage('');
     try{
-      const res = await axios.post('http://localhost:3000/api/v1/problems/createProblem', data);
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/problems/createProblem`, data);
       console.log(res);
       setSuccessMessage('✅ New problem created successfully!');
       reset();
